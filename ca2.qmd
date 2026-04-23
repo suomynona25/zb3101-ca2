@@ -160,6 +160,8 @@ if (file.exists(img)) knitr::include_graphics(img) else
   cat("*Figure appears here after FastQC is executed.*")
 ```
 
+Phred stays around 37 from 1 to 150 position. No big 3' decay.
+
 ```{r fig-dmso-dup}
 #| fig-cap: "Sequence duplication levels — DMSO (SRR33191495_1)."
 #| out-width: "85%"
@@ -167,6 +169,8 @@ img <- "results/fastqc/SRR33191495_1_fastqc/Images/duplication_levels.png"
 if (file.exists(img)) knitr::include_graphics(img) else
   cat("*Figure appears here after FastQC is executed.*")
 ```
+
+Observed duplication rate of around 69%, so only 31% is unique. 2 bumps at >10 and >100 bins. Both the shape and duplication rate are expected for RNA-Seq of CD8+ cells, where a few transcripts dominate the library.
 
 ```{r fig-dmso-adapter}
 #| fig-cap: "Adapter content — DMSO (SRR33191495_1)."
@@ -188,6 +192,9 @@ if (file.exists(img)) knitr::include_graphics(img) else
   cat("*Figure appears here after FastQC is executed.*")
 ```
 
+Phred stays around 37 from 1 to 150 position. No big 3' decay. Almost identical to DMSO.
+
+
 ```{r fig-pon-dup}
 #| fig-cap: "Sequence duplication levels — Ponatinib (SRR33191498_1)."
 #| out-width: "85%"
@@ -195,6 +202,8 @@ img <- "results/fastqc/SRR33191498_1_fastqc/Images/duplication_levels.png"
 if (file.exists(img)) knitr::include_graphics(img) else
   cat("*Figure appears here after FastQC is executed.*")
 ```
+
+Observed duplication rate of around 69%, so only 31% is unique. This might be expected for RNA-Seq, where a few genes dominate expression. Graph is similar to DMSO.
 
 ```{r fig-pon-adapter}
 #| fig-cap: "Adapter content — Ponatinib (SRR33191498_1)."
@@ -206,62 +215,38 @@ if (file.exists(img)) knitr::include_graphics(img) else
 
 ---
 
-## 2.6 Interpretation
+## 2.6 Interpretations
 
 ### Per-base sequence quality
-Both samples are expected to show Phred scores ≥ 30 across most cycles (typical
-for Illumina NovaSeq 6000 output). A modest drop at the 3′ end is normal. If
-any cycles fall below Phred 20, quality trimming will be necessary before
-alignment.
+For both samples, Phred stays around 37 from 1 to 150 position, well above 30 threshold. Slight 3' decay. No trimming necessary.
+
 
 ### Sequence duplication
-Activated CD8+ T cells have a relatively low-complexity transcriptome (a
-handful of cytokines, effector molecules and ribosomal genes dominate), so
-duplication rates of ~20–40% are expected and biologically explainable.
-Duplication > 60% would suggest PCR over-amplification and warrant further
-investigation. We do **not** remove duplicates for bulk RNA-seq by default,
-since duplicate reads arising from highly-expressed transcripts are real
-signal; they are only inspected as a QC flag.
+Observed duplication rate of around 69%, so only 31% is unique. 2 bumps at >10 and >100 bins. Both the shape and duplication rate are expected for RNA-Seq of CD8+ cells, where a few transcripts dominate the library. However duplication rate is higher than expected for activated CD8+ cells (20-40%). Both graphs near-identical.
 
 ### Adapter content
-Illumina TruSeq/Nextera adapters may appear at the 3′ end of short inserts.
-NovaSeq libraries generally have low adapter contamination, but any detectable
-adapter (especially > 5%) means we must include an adapter-trimming step.
+For both samples, all adapter traces well below 5% threshold, minimal adapter trimming needed.
 
 ### Consequences for the analysis pipeline
+No need to remove duplicates since this is RNA-seq and deduplicating can lead to loss of signal, instead use Kallisto or UMI-tools downstream since they can handle multi-mapping.
 
-```{r qc-decision-table}
-tribble(
-  ~Observation,                              ~`Pipeline decision`,
-  "Quality drop at 3′ end (common, mild)",   "fastp with --cut_tail --cut_tail_mean_quality 20, keep reads ≥ 50 bp",
-  "Adapter content visible in either sample","fastp --detect_adapter_for_pe (auto-detect Illumina TruSeq)",
-  "Duplication 20–40% (expected)",           "No pre-alignment deduplication; inspect duplicate rate post-STAR only",
-  "Both samples pass all core modules",      "Proceed with all 6 samples to STAR alignment (GRCm39 + GENCODE M35)",
-  "Either sample fails quality or GC modules","Flag for possible exclusion; re-check in PCA of raw counts"
-) |>
-  kable(align = "ll") |>
-  kable_styling(bootstrap_options = c("striped", "hover"),
-                full_width = TRUE) |>
-  column_spec(1, bold = TRUE, width = "45%") |>
-  column_spec(2, width = "55%")
-```
+No need to trim with cut_tail. Can still trim with fastp --detect_adapter_for_pe since detection is cheap.
 
-**Summary:** Provided both samples pass the per-base quality, duplication and
-adapter modules, the downstream plan is:
+Both samples can proceed to STAR alignment step.
 
-1. **Trimming:** `fastp` with default quality cutoff 20, min length 50 bp,
-   paired-end adapter detection enabled.
-2. **Alignment:** `STAR 2.7+` against GRCm39 with GENCODE M35 annotation,
-   `--sjdbOverhang 149` (read length − 1, assuming 150 bp reads).
-3. **Quantification:** `featureCounts` (Subread) with strand-specific mode
+## Downstream plan
+1. **FastQC:** Perform same FastQC done here on the remaining 4 samples. If FastQC flags one sample as an outlier, that sample will be carried forward but inspected in a PCA of
+`vst`-normalised counts before committing to the final DE model.
+2. **Trimming:** `fastp` with quality cutoff 15
+   paired-end adapter detection enabled. `fastp --cut_tail --cut_tail_window_size 4 --cut_tail_mean_quality 15 --detect_adapter_for_pe`
+3. **Alignment:** `STAR 2.7+` against GRCm39 with GENCODE M35 annotation,
+   `--sjdbOverhang 149` (read length − 1, assuming 150 bp reads suggested here).
+4. **Quantification:** `featureCounts` (Subread) with strand-specific mode
    confirmed from library prep kit (likely `-s 2` for TruSeq stranded).
-4. **Differential expression:** `DESeq2` with design `~ Condition` on 3 vs. 3
+5. **Differential expression:** `DESeq2` with design `~ Condition` on 3 vs. 3
    replicates. Shrinkage estimators (`lfcShrink(type = "apeglm")`) will be
    used given the low replicate count.
 
-If FastQC flags one sample as an outlier (e.g. unusual GC curve or extreme
-duplication), that sample will be carried forward but inspected in a PCA of
-`vst`-normalised counts before committing to the final DE model.
 
 ---
 

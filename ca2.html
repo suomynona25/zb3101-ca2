@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="ZB3101 CA2">
-<meta name="dcterms.date" content="2026-04-22">
+<meta name="dcterms.date" content="2026-04-24">
 
 <title>Preliminary Analysis: GSE295191</title>
 <style>
@@ -2445,13 +2445,14 @@ border: 0;
   <li><a href="#fastqc-summary-across-the-two-samples" id="toc-fastqc-summary-across-the-two-samples" class="nav-link" data-scroll-target="#fastqc-summary-across-the-two-samples">2.3 FastQC summary across the two samples</a></li>
   <li><a href="#dmso-control-srr33191495-read-1" id="toc-dmso-control-srr33191495-read-1" class="nav-link" data-scroll-target="#dmso-control-srr33191495-read-1">2.4 DMSO control — SRR33191495 (Read 1)</a></li>
   <li><a href="#ponatinib-srr33191498-read-1" id="toc-ponatinib-srr33191498-read-1" class="nav-link" data-scroll-target="#ponatinib-srr33191498-read-1">2.5 Ponatinib — SRR33191498 (Read 1)</a></li>
-  <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation">2.6 Interpretation</a>
+  <li><a href="#interpretations" id="toc-interpretations" class="nav-link" data-scroll-target="#interpretations">2.6 Interpretations</a>
   <ul class="collapse">
   <li><a href="#per-base-sequence-quality" id="toc-per-base-sequence-quality" class="nav-link" data-scroll-target="#per-base-sequence-quality">Per-base sequence quality</a></li>
   <li><a href="#sequence-duplication" id="toc-sequence-duplication" class="nav-link" data-scroll-target="#sequence-duplication">Sequence duplication</a></li>
   <li><a href="#adapter-content" id="toc-adapter-content" class="nav-link" data-scroll-target="#adapter-content">Adapter content</a></li>
   <li><a href="#consequences-for-the-analysis-pipeline" id="toc-consequences-for-the-analysis-pipeline" class="nav-link" data-scroll-target="#consequences-for-the-analysis-pipeline">Consequences for the analysis pipeline</a></li>
   </ul></li>
+  <li><a href="#downstream-plan" id="toc-downstream-plan" class="nav-link" data-scroll-target="#downstream-plan">Downstream plan</a></li>
   </ul></li>
   <li><a href="#session-information" id="toc-session-information" class="nav-link" data-scroll-target="#session-information">Session information</a></li>
   </ul>
@@ -2478,7 +2479,7 @@ border: 0;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 22, 2026</p>
+      <p class="date">April 24, 2026</p>
     </div>
   </div>
   
@@ -2811,6 +2812,7 @@ Figure 1: Per-base sequence quality — DMSO (SRR33191495_1).
 </div>
 </div>
 </div>
+<p>Phred stays around 37 from 1 to 150 position. No big 3’ decay.</p>
 <div class="cell">
 <details open class="code-fold">
 <summary>Code</summary>
@@ -2831,6 +2833,7 @@ Figure 2: Sequence duplication levels — DMSO (SRR33191495_1).
 </div>
 </div>
 </div>
+<p>Observed duplication rate of around 69%, so only 31% is unique. 2 bumps at &gt;10 and &gt;100 bins. Both the shape and duplication rate are expected for RNA-Seq of CD8+ cells, where a few transcripts dominate the library.</p>
 <div class="cell">
 <details open class="code-fold">
 <summary>Code</summary>
@@ -2875,6 +2878,7 @@ Figure 4: Per-base sequence quality — Ponatinib (SRR33191498_1).
 </div>
 </div>
 </div>
+<p>Phred stays around 37 from 1 to 150 position. No big 3’ decay. Almost identical to DMSO.</p>
 <div class="cell">
 <details open class="code-fold">
 <summary>Code</summary>
@@ -2895,6 +2899,7 @@ Figure 5: Sequence duplication levels — Ponatinib (SRR33191498_1).
 </div>
 </div>
 </div>
+<p>Observed duplication rate of around 69%, so only 31% is unique. This might be expected for RNA-Seq, where a few genes dominate expression. Graph is similar to DMSO.</p>
 <div class="cell">
 <details open class="code-fold">
 <summary>Code</summary>
@@ -2917,82 +2922,37 @@ Figure 6: Adapter content — Ponatinib (SRR33191498_1).
 </div>
 <hr>
 </section>
-<section id="interpretation" class="level2">
-<h2 class="anchored" data-anchor-id="interpretation">2.6 Interpretation</h2>
+<section id="interpretations" class="level2">
+<h2 class="anchored" data-anchor-id="interpretations">2.6 Interpretations</h2>
 <section id="per-base-sequence-quality" class="level3">
 <h3 class="anchored" data-anchor-id="per-base-sequence-quality">Per-base sequence quality</h3>
-<p>Both samples are expected to show Phred scores ≥ 30 across most cycles (typical for Illumina NovaSeq 6000 output). A modest drop at the 3′ end is normal. If any cycles fall below Phred 20, quality trimming will be necessary before alignment.</p>
+<p>For both samples, Phred stays around 37 from 1 to 150 position, well above 30 threshold. Slight 3’ decay. No trimming necessary.</p>
 </section>
 <section id="sequence-duplication" class="level3">
 <h3 class="anchored" data-anchor-id="sequence-duplication">Sequence duplication</h3>
-<p>Activated CD8+ T cells have a relatively low-complexity transcriptome (a handful of cytokines, effector molecules and ribosomal genes dominate), so duplication rates of ~20–40% are expected and biologically explainable. Duplication &gt; 60% would suggest PCR over-amplification and warrant further investigation. We do <strong>not</strong> remove duplicates for bulk RNA-seq by default, since duplicate reads arising from highly-expressed transcripts are real signal; they are only inspected as a QC flag.</p>
+<p>Observed duplication rate of around 69%, so only 31% is unique. 2 bumps at &gt;10 and &gt;100 bins. Both the shape and duplication rate are expected for RNA-Seq of CD8+ cells, where a few transcripts dominate the library. However duplication rate is higher than expected for activated CD8+ cells (20-40%). Both graphs near-identical.</p>
 </section>
 <section id="adapter-content" class="level3">
 <h3 class="anchored" data-anchor-id="adapter-content">Adapter content</h3>
-<p>Illumina TruSeq/Nextera adapters may appear at the 3′ end of short inserts. NovaSeq libraries generally have low adapter contamination, but any detectable adapter (especially &gt; 5%) means we must include an adapter-trimming step.</p>
+<p>For both samples, all adapter traces well below 5% threshold, minimal adapter trimming needed.</p>
 </section>
 <section id="consequences-for-the-analysis-pipeline" class="level3">
 <h3 class="anchored" data-anchor-id="consequences-for-the-analysis-pipeline">Consequences for the analysis pipeline</h3>
-<div class="cell">
-<details open class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tribble</span>(</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>Observation,                              <span class="sc">~</span><span class="st">`</span><span class="at">Pipeline decision</span><span class="st">`</span>,</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;Quality drop at 3′ end (common, mild)&quot;</span>,   <span class="st">&quot;fastp with --cut_tail --cut_tail_mean_quality 20, keep reads ≥ 50 bp&quot;</span>,</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;Adapter content visible in either sample&quot;</span>,<span class="st">&quot;fastp --detect_adapter_for_pe (auto-detect Illumina TruSeq)&quot;</span>,</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;Duplication 20–40% (expected)&quot;</span>,           <span class="st">&quot;No pre-alignment deduplication; inspect duplicate rate post-STAR only&quot;</span>,</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;Both samples pass all core modules&quot;</span>,      <span class="st">&quot;Proceed with all 6 samples to STAR alignment (GRCm39 + GENCODE M35)&quot;</span>,</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;Either sample fails quality or GC modules&quot;</span>,<span class="st">&quot;Flag for possible exclusion; re-check in PCA of raw counts&quot;</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">align =</span> <span class="st">&quot;ll&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">&quot;striped&quot;</span>, <span class="st">&quot;hover&quot;</span>),</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">full_width =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_spec</span>(<span class="dv">1</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">width =</span> <span class="st">&quot;45%&quot;</span>) <span class="sc">|&gt;</span></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">column_spec</span>(<span class="dv">2</span>, <span class="at">width =</span> <span class="st">&quot;55%&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div class="cell-output-display">
-<table class="table table-striped table-hover caption-top table-sm small">
-<thead>
-<tr class="header">
-<th style="text-align: left;" data-quarto-table-cell-role="th">Observation</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">Pipeline decision</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left; width: 45%; font-weight: bold;">Quality drop at 3′ end (common, mild)</td>
-<td style="text-align: left; width: 55%;">fastp with --cut_tail --cut_tail_mean_quality 20, keep reads ≥ 50 bp</td>
-</tr>
-<tr class="even">
-<td style="text-align: left; width: 45%; font-weight: bold;">Adapter content visible in either sample</td>
-<td style="text-align: left; width: 55%;">fastp --detect_adapter_for_pe (auto-detect Illumina TruSeq)</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left; width: 45%; font-weight: bold;">Duplication 20–40% (expected)</td>
-<td style="text-align: left; width: 55%;">No pre-alignment deduplication; inspect duplicate rate post-STAR only</td>
-</tr>
-<tr class="even">
-<td style="text-align: left; width: 45%; font-weight: bold;">Both samples pass all core modules</td>
-<td style="text-align: left; width: 55%;">Proceed with all 6 samples to STAR alignment (GRCm39 + GENCODE M35)</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left; width: 45%; font-weight: bold;">Either sample fails quality or GC modules</td>
-<td style="text-align: left; width: 55%;">Flag for possible exclusion; re-check in PCA of raw counts</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p><strong>Summary:</strong> Provided both samples pass the per-base quality, duplication and adapter modules, the downstream plan is:</p>
+<p>No need to remove duplicates since this is RNA-seq and deduplicating can lead to loss of signal, instead use Kallisto or UMI-tools downstream since they can handle multi-mapping.</p>
+<p>No need to trim with cut_tail. Can still trim with fastp –detect_adapter_for_pe since detection is cheap.</p>
+<p>Both samples can proceed to STAR alignment step.</p>
+</section>
+</section>
+<section id="downstream-plan" class="level2">
+<h2 class="anchored" data-anchor-id="downstream-plan">Downstream plan</h2>
 <ol type="1">
-<li><strong>Trimming:</strong> <code>fastp</code> with default quality cutoff 20, min length 50 bp, paired-end adapter detection enabled.</li>
-<li><strong>Alignment:</strong> <code>STAR 2.7+</code> against GRCm39 with GENCODE M35 annotation, <code>--sjdbOverhang 149</code> (read length − 1, assuming 150 bp reads).</li>
+<li><strong>FastQC:</strong> Perform same FastQC done here on the remaining 4 samples. If FastQC flags one sample as an outlier, that sample will be carried forward but inspected in a PCA of <code>vst</code>-normalised counts before committing to the final DE model.</li>
+<li><strong>Trimming:</strong> <code>fastp</code> with quality cutoff 15 paired-end adapter detection enabled. <code>fastp --cut_tail --cut_tail_window_size 4 --cut_tail_mean_quality 15 --detect_adapter_for_pe</code></li>
+<li><strong>Alignment:</strong> <code>STAR 2.7+</code> against GRCm39 with GENCODE M35 annotation, <code>--sjdbOverhang 149</code> (read length − 1, assuming 150 bp reads suggested here).</li>
 <li><strong>Quantification:</strong> <code>featureCounts</code> (Subread) with strand-specific mode confirmed from library prep kit (likely <code>-s 2</code> for TruSeq stranded).</li>
 <li><strong>Differential expression:</strong> <code>DESeq2</code> with design <code>~ Condition</code> on 3 vs. 3 replicates. Shrinkage estimators (<code>lfcShrink(type = &quot;apeglm&quot;)</code>) will be used given the low replicate count.</li>
 </ol>
-<p>If FastQC flags one sample as an outlier (e.g. unusual GC curve or extreme duplication), that sample will be carried forward but inspected in a PCA of <code>vst</code>-normalised counts before committing to the final DE model.</p>
 <hr>
-</section>
 </section>
 </section>
 <section id="session-information" class="level1">
@@ -3000,7 +2960,7 @@ Figure 6: Adapter content — Ponatinib (SRR33191498_1).
 <div class="cell">
 <details open class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>R version 4.5.2 (2025-10-31 ucrt)
